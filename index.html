@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Analytics Tracking Demo</title>
+  <style>
+    /* Modern styling with Claude-like font */
+    :root {
+      --primary: #724cf9;
+      --primary-light: #9c82ff;
+      --success: #4caf50;
+      --error: #f44336;
+      --gray-100: #f5f5f5;
+      --gray-200: #e0e0e0;
+      --gray-300: #c0c0c0;
+      --gray-800: #333333;
+      --shadow: 0 4px 12px rgba(0,0,0,0.1);
+      --radius: 8px;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background-color: var(--gray-100);
+      color: var(--gray-800);
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .subtitle {
+      font-size: 1.2rem;
+      color: var(--gray-800);
+      margin-bottom: 2rem;
+    }
+    
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 2rem;
+    }
+    
+    @media (max-width: 768px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    section {
+      background: white;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease;
+    }
+    
+    section:hover {
+      transform: translateY(-2px);
+    }
+    
+    h2 {
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 0.5rem;
+      margin-top: 0;
+    }
+    
+    button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    button:hover {
+      background-color: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(114, 76, 249, 0.3);
+    }
+    
+    .clickable-box {
+      width: 180px;
+      height: 120px;
+      background: linear-gradient(135deg, var(--primary-light), var(--primary));
+      color: white;
+      margin: 1rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: var(--radius);
+      font-weight: bold;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+    }
+    
+    .hover-box:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 16px rgba(114, 76, 249, 0.4);
+    }
+    
+    input {
+      padding: 0.75rem;
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius);
+      width: 100%;
+      transition: all 0.3s ease;
+      margin-bottom: 1rem;
+    }
+    
+    .input-box:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(114, 76, 249, 0.2);
+    }
+    
+    .copy-target {
+      padding: 1rem;
+      background-color: var(--gray-100);
+      border-radius: var(--radius);
+      border-left: 4px solid var(--primary);
+      transition: all 0.3s ease;
+    }
+    
+    .success {
+      color: var(--success);
+      font-weight: bold;
+    }
+    
+    .fail {
+      color: var(--error);
+      font-weight: bold;
+    }
+    
+    code {
+      font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+      background-color: var(--gray-100);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+    
+    /* Event Logger Styling */
+    .event-logger {
+      position: sticky;
+      top: 2rem;
+      height: calc(100vh - 4rem);
+      background-color: #1e1e1e;
+      color: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .logger-header {
+      background-color: var(--primary);
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logger-title {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+    
+    .clear-button {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+    }
+    
+    .clear-button:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .logger-body {
+      padding: 1rem;
+      overflow-y: auto;
+      flex-grow: 1;
+      font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+      font-size: 0.85rem;
+    }
+    
+    .event-entry {
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border-radius: 4px;
+      border-left: 3px solid;
+      animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .event-action {
+      color: #ffeb3b;
+    }
+    
+    .event-timestamp {
+      color: #80cbc4;
+      font-size: 0.75rem;
+    }
+    
+    .event-type {
+      margin-bottom: 0.25rem;
+      font-weight: bold;
+    }
+    
+    .event-data {
+      color: #a5d6a7;
+    }
+    
+    .event-click { border-color: #ff9800; background-color: rgba(255, 152, 0, 0.1); }
+    .event-hover { border-color: #2196f3; background-color: rgba(33, 150, 243, 0.1); }
+    .event-focus { border-color: #9c27b0; background-color: rgba(156, 39, 176, 0.1); }
+    .event-copy { border-color: #00bcd4; background-color: rgba(0, 188, 212, 0.1); }
+    .event-success { border-color: #4caf50; background-color: rgba(76, 175, 80, 0.1); }
+    .event-error { border-color: #f44336; background-color: rgba(244, 67, 54, 0.1); }
+
+    /* Modern touch for highlighting */
+    .highlighted {
+      background-color: rgba(255, 235, 59, 0.3);
+      border-radius: 3px;
+      padding: 0 2px;
+      transition: background-color 1s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Event Analytics Tracking Demo</h1>
+      <p class="subtitle">Interactive tool for demonstrating real-time event analytics capture</p>
+    </header>
+    
+    <div class="layout">
+      <div class="interaction-area">
+        <section>
+          <h2>Button Click Events</h2>
+          <p>Click the button below to trigger a click event that would be captured by analytics:</p>
+          <button id="attributeButton" title="This button triggers a click event" aria-label="Click for action">Track Button Click</button>
+        </section>
+        
+        <section>
+          <h2>Hover Interaction Events</h2>
+          <div class="clickable-box hover-box">Hover Over Me</div>
+          <p>Moving your cursor over the box demonstrates hover event tracking using the <code>mouseenter</code> and <code>mouseleave</code> events.</p>
+        </section>
+        
+        <section>
+          <h2>User Input Focus Events</h2>
+          <input type="text" placeholder="Click here to focus this input field" class="input-box">
+          <p>Focus and blur events are commonly tracked to measure form engagement.</p>
+        </section>
+        
+        <section>
+          <h2>Content Copy Events</h2>
+          <p>Select the text below and press Cmd/Ctrl+C to copy:</p>
+          <p id="copyText" class="copy-target">
+            This text demonstrates how copy events could be tracked for analytics purposes. Try copying part of this sentence.
+          </p>
+        </section>
+        
+        <section>
+          <h2>Success/Failure Event Tracking</h2>
+          <button onclick="runSuccessAction()">Complete Action (Success)</button>
+          <button onclick="runFailureAction()">Abandon Action (Failure)</button>
+          <p id="feedback"></p>
+          <p>Success and failure events help track conversion funnels and identify friction points.</p>
+        </section>
+      </div>
+      
+      <div class="event-logger">
+        <div class="logger-header">
+          <h3 class="logger-title">📊 Analytics Event Stream</h3>
+          <button class="clear-button" id="clearLogs">Clear</button>
+        </div>
+        <div class="logger-body" id="eventLog">
+          <div class="event-entry event-success">
+            <div class="event-type">⚡ System Ready</div>
+            <div class="event-action">Analytics tracking initialized</div>
+            <div class="event-timestamp">Just now</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Helper function to log events both to console and to our visual event logger
+    function logEvent(eventType, eventName, eventData = {}) {
+      // Create event entry element
+      const eventEntry = document.createElement('div');
+      eventEntry.classList.add('event-entry', `event-${eventType.toLowerCase()}`);
+      
+      // Create event type element
+      const eventTypeEl = document.createElement('div');
+      eventTypeEl.classList.add('event-type');
+      
+      // Set icon based on event type
+      let icon = '📝';
+      if (eventType === 'click') icon = '👆';
+      if (eventType === 'hover') icon = '✨';
+      if (eventType === 'focus') icon = '🔍';
+      if (eventType === 'copy') icon = '📋';
+      if (eventType === 'success') icon = '✅';
+      if (eventType === 'error') icon = '❌';
+      
+      eventTypeEl.textContent = `${icon} ${eventType.toUpperCase()}`;
+      eventEntry.appendChild(eventTypeEl);
+      
+      // Create event action element
+      const eventActionEl = document.createElement('div');
+      eventActionEl.classList.add('event-action');
+      eventActionEl.textContent = eventName;
+      eventEntry.appendChild(eventActionEl);
+      
+      // Create event data element if we have data
+      if (Object.keys(eventData).length > 0) {
+        const eventDataEl = document.createElement('div');
+        eventDataEl.classList.add('event-data');
+        eventDataEl.textContent = JSON.stringify(eventData);
+        eventEntry.appendChild(eventDataEl);
+      }
+      
+      // Create timestamp element
+      const timestampEl = document.createElement('div');
+      timestampEl.classList.add('event-timestamp');
+      const now = new Date();
+      timestampEl.textContent = `${now.toLocaleTimeString()}.${now.getMilliseconds()}`;
+      eventEntry.appendChild(timestampEl);
+      
+      // Add to logger
+      const eventLog = document.getElementById('eventLog');
+      eventLog.insertBefore(eventEntry, eventLog.firstChild);
+      
+      // Auto-scroll to newest entry
+      eventLog.scrollTop = 0;
+      
+      // Also log to console
+      console.log(`[${eventType.toUpperCase()}] ${eventName}`, eventData);
+    }
+    
+    // Button Click Event
+    document.getElementById('attributeButton').addEventListener('click', function() {
+      this.style.backgroundColor = '#9c82ff';
+      
+      // Log the click event
+      logEvent('click', 'Button Clicked', {
+        elementId: this.id,
+        elementText: this.textContent,
+        timestamp: new Date().getTime()
+      });
+      
+      // Reset button color after a delay
+      setTimeout(() => {
+        this.style.backgroundColor = '';
+      }, 500);
+    });
+    
+    // Hover Events
+    const hoverBox = document.querySelector('.hover-box');
+    hoverBox.addEventListener('mouseenter', function() {
+      logEvent('hover', 'Element Hover Start', {
+        element: 'Interactive Box',
+        hoverDuration: 'tracking started'
+      });
+      
+      // Start tracking hover duration
+      this.hoverStartTime = new Date().getTime();
+    });
+    
+    hoverBox.addEventListener('mouseleave', function() {
+      const hoverEndTime = new Date().getTime();
+      const hoverDuration = hoverEndTime - (this.hoverStartTime || hoverEndTime);
+      
+      logEvent('hover', 'Element Hover End', {
+        element: 'Interactive Box',
+        hoverDuration: `${hoverDuration}ms`
+      });
+    });
+    
+    // Focus Events
+    const inputField = document.querySelector('.input-box');
+    inputField.addEventListener('focus', function() {
+      logEvent('focus', 'Input Field Focused', {
+        fieldType: this.type,
+        fieldId: this.id || 'unnamed-field'
+      });
+      
+      // Start tracking focus duration
+      this.focusStartTime = new Date().getTime();
+    });
+    
+    inputField.addEventListener('blur', function() {
+      const focusEndTime = new Date().getTime();
+      const focusDuration = focusEndTime - (this.focusStartTime || focusEndTime);
+      
+      logEvent('focus', 'Input Field Blur', {
+        fieldType: this.type,
+        focusDuration: `${focusDuration}ms`,
+        hadInput: this.value.length > 0
+      });
+    });
+    
+    // Copy Events
+    document.addEventListener('copy', function(e) {
+      const selection = window.getSelection();
+      const selectedText = selection.toString();
+      const copyText = document.getElementById('copyText');
+      
+      if (selectedText && copyText.textContent.includes(selectedText)) {
+        // Create highlighted version by wrapping the selected text
+        const textContent = copyText.textContent;
+        const startIndex = textContent.indexOf(selectedText);
+        
+        if (startIndex !== -1) {
+          copyText.innerHTML = 
+            textContent.substring(0, startIndex) + 
+            `<span class="highlighted">${selectedText}</span>` + 
+            textContent.substring(startIndex + selectedText.length);
+          
+          // Log the copy event
+          logEvent('copy', 'Text Content Copied', {
+            contentLength: selectedText.length,
+            contentSnippet: selectedText.length > 30 ? selectedText.substring(0, 30) + '...' : selectedText
+          });
+          
+          // Remove highlight after delay
+          setTimeout(() => {
+            copyText.textContent = textContent;
+          }, 1500);
+        }
+      }
+    });
+    
+    // Success/Failure Events
+    function runSuccessAction() {
+      document.getElementById('feedback').textContent = 'Action completed successfully!';
+      document.getElementById('feedback').className = 'success';
+      
+      logEvent('success', 'User Action Completed', {
+        actionType: 'button-click',
+        result: 'success',
+        processingTime: '230ms'
+      });
+    }
+    
+    function runFailureAction() {
+      document.getElementById('feedback').textContent = 'Action failed. Please try again.';
+      document.getElementById('feedback').className = 'fail';
+      
+      logEvent('error', 'User Action Failed', {
+        actionType: 'button-click',
+        result: 'failure',
+        errorCode: 'USER_ABORT'
+      });
+    }
+    
+    // Clear logs button
+    document.getElementById('clearLogs').addEventListener('click', function() {
+      document.getElementById('eventLog').innerHTML = '';
+      logEvent('success', 'Event log cleared');
+    });
+    
+    // Initial log
+    window.addEventListener('load', function() {
+      logEvent('success', 'Page Loaded', {
+        loadTime: performance.now().toFixed(0) + 'ms',
+        url: window.location.href
+      });
+    });
+  </script>
+</body>
+</html>
